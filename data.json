@@ -1,0 +1,66 @@
+[
+    {
+        "image": "https://i.ibb.co/z8C5B7h/pngegg-5.png",
+        "name": "Hip Hop Dance",
+        "instructor_name": "Samantha Johnson",
+        "available_seats": 15,
+        "total_students": 10,
+        "price": "$50"
+    },
+    {
+        "image": "https://i.ibb.co/TRPQFhd/pngegg-9.png",
+        "name": "Ballet for Beginners",
+        "instructor_name": "Emily Thompson",
+        "available_seats": 10,
+        "total_students": 8,
+        "price": "$60"
+    },
+    {
+        "image": "https://i.ibb.co/VCpTh4S/pngegg-10.png",
+        "name": "Contemporary Dance",
+        "instructor_name": "Sophie Roberts",
+        "available_seats": 8,
+        "total_students": 4,
+        "price": "$65"
+    },
+    {
+        "image": "https://i.ibb.co/FxQ7Fq4/pngegg-11.png",
+        "name": "Latin Dance Party",
+        "instructor_name": "Carlos Hernandez",
+        "available_seats": 20,
+        "total_students": 18,
+        "price": "$45"
+    },
+    {
+        "image": "https://i.ibb.co/7RytwzV/pngegg-12.png",
+        "name": "Salsa Sensation",
+        "instructor_name": "Isabella Ramirez",
+        "available_seats": 15,
+        "total_students": 12,
+        "price": "$50"
+    },
+    {
+        "image": "https://i.ibb.co/WkLVnxg/pngegg-14.png",
+        "name": "Aerial Dance",
+        "instructor_name": "Olivia Anderson",
+        "available_seats": 6,
+        "total_students": 3,
+        "price": "$75"
+    },
+    {
+        "image": "https://i.ibb.co/DM4XskH/pngegg-3.png",
+        "class_name": "Classic Dance Workshop",
+        "instructor_name": "Olivia Anderson",
+        "available_seats": 20,
+        "total_students": 5,
+        "price": "$75"
+      },
+      {
+        "image": "https://i.ibb.co/ZdLntS4/pngegg-15.png",
+        "name": "Irish Step Dance",
+        "instructor_name": "Liam Murphy",
+        "available_seats": 8,
+        "total_students": 9,
+        "price": "$65"
+      }
+]
