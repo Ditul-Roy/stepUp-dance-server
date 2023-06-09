@@ -24,10 +24,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const danceCollection = client.db('dancingDB').collection('dances');
+    const danceCollection = client.db('dancingDB').collection('classes');
 
     app.get('/dances', async(req, res) => {
-        const result = await danceCollection.find().toArray();
+        const result = await danceCollection.find().sort({total_students:-1}).toArray();
         res.send(result)
     })
 
