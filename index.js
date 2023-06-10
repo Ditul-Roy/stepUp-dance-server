@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
-const port= process.env.port || 5000;
+const port = process.env.port || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -26,15 +26,48 @@ async function run() {
 
     const danceCollection = client.db('dancingDB').collection('classes');
     const instructorCollection = client.db('dancingDB').collection('instructors')
+    const selectedCollection = client.db('dancingDB').collection('selecteds')
 
-    app.get('/dances', async(req, res) => {
-        const result = await danceCollection.find().sort({total_students:-1}).toArray();
-        res.send(result)
+    // dances section
+    app.get('/dances', async (req, res) => {
+      const result = await danceCollection.find().sort({ total_students: -1 }).toArray();
+      res.send(result)
     })
 
-    app.get('/instructors', async(req, res) => {
-      const result = await instructorCollection.find().sort({number_of_classes:-1}).toArray();
+    // app.patch('/dances/:id', async(req, res) => {
+    //   const id = req.params.id;
+    //   const filter = {_id: new ObjectId(id)};
+    //   const updateDoc= {
+    //     $set: {
+    //       available_seats: "20"
+    //     }
+    //   }
+    //   const result = await danceCollection.updateOne(filter, updateDoc);
+    //   res.send(result);
+    // })
+
+    // instructors section
+    app.get('/instructors', async (req, res) => {
+      const result = await instructorCollection.find().sort({ number_of_classes: -1 }).toArray();
       res.send(result)
+    })
+
+    // select section
+
+    app.get('/selects', async(req, res) => {
+      const email = req.query?.email;
+      let query = {};
+      if(email){
+        query = {email: email};
+      }
+      const result = await selectedCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.post('/selects', async (req, res) => {
+      const select = req.body;
+      const result = await selectedCollection.insertOne(select);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
@@ -48,10 +81,10 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/', (req, res) =>{
-    res.send('the dance ecademy server is running')
+app.get('/', (req, res) => {
+  res.send('the dance ecademy server is running')
 })
 
 app.listen(port, () => {
-    console.log(`the server is dancing on port: ${port}`);
+  console.log(`the server is dancing on port: ${port}`);
 })
