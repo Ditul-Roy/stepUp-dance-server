@@ -28,10 +28,16 @@ async function run() {
     const instructorCollection = client.db('dancingDB').collection('instructors')
     const selectedCollection = client.db('dancingDB').collection('selecteds')
 
-    // dances section
+    // dances/classes section
     app.get('/dances', async (req, res) => {
       const result = await danceCollection.find().sort({ total_students: -1 }).toArray();
       res.send(result)
+    })
+
+    app.post('/classes', async(req, res) => {
+      const classes = req.body;
+      const result = await danceCollection.insertOne(classes);
+      res.send(result);
     })
 
     // app.patch('/dances/:id', async(req, res) => {
