@@ -40,17 +40,15 @@ async function run() {
       res.send(result);
     })
 
-    // app.patch('/dances/:id', async(req, res) => {
-    //   const id = req.params.id;
-    //   const filter = {_id: new ObjectId(id)};
-    //   const updateDoc= {
-    //     $set: {
-    //       available_seats: "20"
-    //     }
-    //   }
-    //   const result = await danceCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // })
+    app.get('/classes', async(req, res) => {
+      const email = req.query?.email;
+      let query = {};
+      if(email){
+        query = {email: email}
+      }
+      const result = await danceCollection.find(query).toArray();
+      res.send(result);
+    })
 
     // instructors section
     app.get('/instructors', async (req, res) => {
