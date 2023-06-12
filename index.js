@@ -28,19 +28,33 @@ async function run() {
     const danceCollection = client.db('dancingDB').collection('classes');
     const instructorCollection = client.db('dancingDB').collection('instructors')
     const selectedCollection = client.db('dancingDB').collection('selecteds')
+    const userCollection = client.db('dancingDB').collection('users')
 
-    // dances/classes section
+    // dances/classes section 
+
+    // all user can be access
     app.get('/dances', async (req, res) => {
       const result = await danceCollection.find().sort({ total_students: -1 }).toArray();
       res.send(result)
     })
 
+    // all user route
+    // userCollection route
+    app.post('/users', async(req, res) =>{
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+
+    // instructor can be access this route
     app.post('/classes', async(req, res) => {
       const classes = req.body;
       const result = await danceCollection.insertOne(classes);
       res.send(result);
     })
 
+     // instructor can be access this route
     app.get('/classes', async(req, res) => {
       const email = req.query?.email;
       let query = {};
@@ -50,15 +64,40 @@ async function run() {
       const result = await danceCollection.find(query).toArray();
       res.send(result);
     })
+   // instructor can be access this route
+    app.put('/classes/:id/book', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const updatedDoc = {
+        $inc: {
+          total_students: 1,
+          available_seats: - 1
+        }
+      }
+      const result = await danceCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    })
+  //  // instructor can be access this route
+  //   app.put('/classes/:id/seat', async(req, res) => {
+  //     const id = req.params.id;
+  //     const query = {_id: new ObjectId(id)};
+  //     const updatedDoc = {
+  //       $inc: {
+  //         available_seats: -1
+  //       }
+  //     }
+  //     const result = await danceCollection.updateOne(query, updatedDoc);
+  //     res.send(result);
+  //   })
 
-    // instructors section
+    // instructors section this is for  our instructors page
     app.get('/instructors', async (req, res) => {
       const result = await instructorCollection.find().sort({ number_of_classes: -1 }).toArray();
       res.send(result)
     })
 
     // select section
-
+  // all user can be access
     app.get('/selects', async(req, res) => {
       const email = req.query?.email;
       let query = {};
@@ -68,13 +107,13 @@ async function run() {
       const result = await selectedCollection.find(query).toArray();
       res.send(result)
     })
-
+  // all user can be access
     app.post('/selects', async (req, res) => {
       const select = req.body;
       const result = await selectedCollection.insertOne(select);
       res.send(result);
     })
-
+  // all user can be access
     app.delete('/selects/:id', async(req, res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)};
@@ -85,7 +124,7 @@ async function run() {
   // payment related section
 
   app.post('/create-payment-intent', async (req, res) => {
-    const price = req.body;
+    const {price} = req.body;
     const amount = price*100;
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
