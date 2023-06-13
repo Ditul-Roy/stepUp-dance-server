@@ -33,6 +33,7 @@ async function run() {
     // dances/classes section 
 
     // all user can be access
+    // users collection
     app.get('/dances', async (req, res) => {
       const result = await danceCollection.find().sort({ total_students: -1 }).toArray();
       res.send(result)
@@ -44,6 +45,37 @@ async function run() {
       const user = req.body;
       const result = await userCollection.insertOne(user);
       res.send(result);
+    })
+
+    // admin can be access
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+    // create user on admin route 
+    app.patch('/users/admin/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updatedDoc ={
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
+
+    // create user on instructor
+    app.patch('/users/instructor/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          role: 'instructor'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result)
     })
 
 
