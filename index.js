@@ -10,21 +10,6 @@ const port = process.env.port || 5000;
 app.use(cors());
 app.use(express.json());
 
-const verifyUserWithJWT = (req, res, next) =>{
-  const authorization = req.headers.authorization;
-  if(!authorization){
-    return res.status(401).send({error: true, message: 'unauthorized access'})
-  }
-  const token = authorization.split(' ')[1];
-  jwt.verify(token, process.env.JWT_ACCESS_TOKEN, (error, decoded) => {
-    if(error){
-      return res.status(401).send({error: true, message: 'unauthorized access'})
-    }
-    req.decoded = decoded;
-    next();
-  })
-}
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bylwpc6.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -45,14 +30,6 @@ async function run() {
     const instructorCollection = client.db('dancingDB').collection('instructors')
     const selectedCollection = client.db('dancingDB').collection('selecteds')
     const userCollection = client.db('dancingDB').collection('users')
-
-    
-    // jwt Router
-    app.post('/jwt', (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.JWT_ACCESS_TOKEN, {expiresIn: '1h'})
-      res.send({token})
-    })
 
     // dances/classes section 
     // all user can be access
@@ -76,12 +53,21 @@ async function run() {
     })
 
     // admin can be access
-    app.get('/users',verifyUserWithJWT, async (req, res) => {
+    app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
+
+    // // get admin
+    app.get('/users/admin/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      const result = {admin: user?.role === 'admin'}
+      res.send(result);
+    })
     // create user on admin route 
-    app.patch('/users/admin/:id',verifyUserWithJWT, async (req, res) => {
+    app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -118,6 +104,22 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/users/instructor/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      const result = {instructor: user?.role === 'instructor'}
+      res.send(result);
+    })
+
+    app.get('/users/student/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      const result = {student: user?.role === 'student'}
+      res.send(result);
+    })
+
     // create user on instructor
     app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
@@ -140,11 +142,8 @@ async function run() {
     })
 
     // instructor can be access this route
-    app.get('/classes',verifyUserWithJWT, async (req, res) => {
-      const email = req.query?.email;
-      if(req.decoded.email !== email){
-        return res.send({error: true, message: 'forbidden acces'})
-      } 
+    app.get('/classes', async (req, res) => {
+      const email = req.query?.email; 
       let query = {};
       if (email) {
         query = { email: email }
@@ -174,11 +173,8 @@ async function run() {
 
     // select section
     // all user can be access
-    app.get('/selects',verifyUserWithJWT, async (req, res) => {
+    app.get('/selects', async (req, res) => {
       const email = req.query?.email;
-      if(req.decoded.email !== email){
-        res.send({error: true, message: 'forbidden access'})
-      }
       let query = {};
       if (email) {
         query = { email: email };
