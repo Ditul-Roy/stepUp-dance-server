@@ -41,22 +41,27 @@ async function run() {
 
     // all user route
     // userCollection route
-    app.post('/users', async(req, res) =>{
+    app.post('/users', async (req, res) => {
       const user = req.body;
+      const query = { email: user.email };
+      const existing = await userCollection.findOne(query);
+      if (existing) {
+        return res.send({ message: 'user already exist' })
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     })
 
     // admin can be access
-    app.get('/users', async(req, res) => {
+    app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
     // create user on admin route 
-    app.patch('/users/admin/:id', async(req, res) =>{
+    app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
-      const updatedDoc ={
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
         $set: {
           role: 'admin'
         }
@@ -64,11 +69,36 @@ async function run() {
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result)
     })
+    // admin can access and aproved the class of instructor
+    app.patch('/classes/aproved/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'aproved'
+        }
+      }
+      const result = await danceCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
+
+    // admin can access and denied the class of instructor
+    app.patch('/classes/denied/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'denied'
+        }
+      }
+      const result = await danceCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
 
     // create user on instructor
-    app.patch('/users/instructor/:id', async(req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
           role: 'instructor'
@@ -80,26 +110,26 @@ async function run() {
 
 
     // instructor can be access this route
-    app.post('/classes', async(req, res) => {
+    app.post('/classes', async (req, res) => {
       const classes = req.body;
       const result = await danceCollection.insertOne(classes);
       res.send(result);
     })
 
-     // instructor can be access this route
-    app.get('/classes', async(req, res) => {
+    // instructor can be access this route
+    app.get('/classes', async (req, res) => {
       const email = req.query?.email;
       let query = {};
-      if(email){
-        query = {email: email}
+      if (email) {
+        query = { email: email }
       }
       const result = await danceCollection.find(query).toArray();
       res.send(result);
     })
-   // instructor can be access this route
-    app.put('/classes/:id/book', async(req, res) => {
+    // instructor can be access this route
+    app.put('/classes/:id/book', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const updatedDoc = {
         $inc: {
           total_students: 1,
@@ -109,64 +139,64 @@ async function run() {
       const result = await danceCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
-  //  // instructor can be access this route
-  //   app.put('/classes/:id/seat', async(req, res) => {
-  //     const id = req.params.id;
-  //     const query = {_id: new ObjectId(id)};
-  //     const updatedDoc = {
-  //       $inc: {
-  //         available_seats: -1
-  //       }
-  //     }
-  //     const result = await danceCollection.updateOne(query, updatedDoc);
-  //     res.send(result);
-  //   })
+    //  // instructor can be access this route
+    //   app.put('/classes/:id/seat', async(req, res) => {
+    //     const id = req.params.id;
+    //     const query = {_id: new ObjectId(id)};
+    //     const updatedDoc = {
+    //       $inc: {
+    //         available_seats: -1
+    //       }
+    //     }
+    //     const result = await danceCollection.updateOne(query, updatedDoc);
+    //     res.send(result);
+    //   })
 
     // instructors section this is for  our instructors page
     app.get('/instructors', async (req, res) => {
-      const result = await instructorCollection.find().sort({ number_of_classes: -1 }).toArray();
+      const result = await instructorCollection.find().toArray();
       res.send(result)
     })
 
     // select section
-  // all user can be access
-    app.get('/selects', async(req, res) => {
+    // all user can be access
+    app.get('/selects', async (req, res) => {
       const email = req.query?.email;
       let query = {};
-      if(email){
-        query = {email: email};
+      if (email) {
+        query = { email: email };
       }
       const result = await selectedCollection.find(query).toArray();
       res.send(result)
     })
-  // all user can be access
+    // all user can be access
     app.post('/selects', async (req, res) => {
       const select = req.body;
       const result = await selectedCollection.insertOne(select);
       res.send(result);
     })
-  // all user can be access
-    app.delete('/selects/:id', async(req, res) => {
+    // all user can be access
+    app.delete('/selects/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await selectedCollection.deleteOne(query);
       res.send(result);
     })
 
-  // payment related section
+    // payment related section
 
-  app.post('/create-payment-intent', async (req, res) => {
-    const {price} = req.body;
-    const amount = price*100;
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: 'usd',
-      payment_method_types: ['card']
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
     })
-    res.send({
-      clientSecret: paymentIntent.client_secret
-    })
-  })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
