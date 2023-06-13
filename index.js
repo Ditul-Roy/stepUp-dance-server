@@ -1,13 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-require('dotenv').config()
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const app = express();
 const port = process.env.port || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+const verifyUserWithJWT = (req, res, next) =>{
+  const authorization = req.headers.authorization;
+  if(!authorization){
+    return res.status(401).send({error: true, message: 'unauthorized access'})
+  }
+  const token = authorization.split(' ')[1];
+  jwt.verify(token, process.env.JWT_ACCESS_TOKEN, (error, decoded) => {
+    if(error){
+      return res.status(401).send({error: true, message: 'unauthorized access'})
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bylwpc6.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -30,8 +46,15 @@ async function run() {
     const selectedCollection = client.db('dancingDB').collection('selecteds')
     const userCollection = client.db('dancingDB').collection('users')
 
-    // dances/classes section 
+    
+    // jwt Router
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.JWT_ACCESS_TOKEN, {expiresIn: '1h'})
+      res.send({token})
+    })
 
+    // dances/classes section 
     // all user can be access
     // users collection
     app.get('/dances', async (req, res) => {
@@ -53,12 +76,12 @@ async function run() {
     })
 
     // admin can be access
-    app.get('/users', async (req, res) => {
+    app.get('/users',verifyUserWithJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
     // create user on admin route 
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id',verifyUserWithJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -117,8 +140,11 @@ async function run() {
     })
 
     // instructor can be access this route
-    app.get('/classes', async (req, res) => {
+    app.get('/classes',verifyUserWithJWT, async (req, res) => {
       const email = req.query?.email;
+      if(req.decoded.email !== email){
+        return res.send({error: true, message: 'forbidden acces'})
+      } 
       let query = {};
       if (email) {
         query = { email: email }
@@ -139,18 +165,6 @@ async function run() {
       const result = await danceCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
-    //  // instructor can be access this route
-    //   app.put('/classes/:id/seat', async(req, res) => {
-    //     const id = req.params.id;
-    //     const query = {_id: new ObjectId(id)};
-    //     const updatedDoc = {
-    //       $inc: {
-    //         available_seats: -1
-    //       }
-    //     }
-    //     const result = await danceCollection.updateOne(query, updatedDoc);
-    //     res.send(result);
-    //   })
 
     // instructors section this is for  our instructors page
     app.get('/instructors', async (req, res) => {
@@ -160,8 +174,11 @@ async function run() {
 
     // select section
     // all user can be access
-    app.get('/selects', async (req, res) => {
+    app.get('/selects',verifyUserWithJWT, async (req, res) => {
       const email = req.query?.email;
+      if(req.decoded.email !== email){
+        res.send({error: true, message: 'forbidden access'})
+      }
       let query = {};
       if (email) {
         query = { email: email };
