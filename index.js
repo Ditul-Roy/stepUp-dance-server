@@ -103,7 +103,7 @@ async function run() {
       const result = await danceCollection.updateOne(filter, updatedDoc);
       res.send(result)
     })
-
+    // dadshboard setUp
     app.get('/users/instructor/:email', async(req, res) => {
       const email = req.params.email;
       const query = {email: email};
@@ -111,7 +111,7 @@ async function run() {
       const result = {instructor: user?.role === 'instructor'}
       res.send(result);
     })
-
+    // dadshboard setUp
     app.get('/users/student/:email', async(req, res) => {
       const email = req.params.email;
       const query = {email: email};
@@ -166,9 +166,15 @@ async function run() {
     })
 
     // instructors section this is for  our instructors page
+    app.post('/instructors', async(req, res) => {
+      const instructor = req.body;
+      const result = await instructorCollection.insertOne(instructor);
+      res.send(result);
+    })
+    // instructor
     app.get('/instructors', async (req, res) => {
-      const result = await instructorCollection.find().toArray();
-      res.send(result)
+        const result = await instructorCollection.find().toArray();
+        res.send(result)
     })
 
     // select section
